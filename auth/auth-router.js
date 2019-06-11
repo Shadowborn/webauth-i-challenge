@@ -5,10 +5,8 @@ const Users = require('../users/users-model.js');
 
 router.post('/register', (req, res) => {
   let user = req.body;
-
   // hash the password
   const hash = bcrypt.hashSync(user.password, 8); // password gets re-hashed 2 ^ 8 times
-
   user.password = hash; // <<<<<<<<<<<<<<<<<<<
 
   Users.add(user)
@@ -27,7 +25,8 @@ router.post('/login', (req, res) => {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
-        res.status(200).json({ message: `Welcome ${user.username}!` });
+        req.session.username = user.username;
+        res.status(200).json({ message: `Welcome ${user.username}! have a cookie!` });
       } else {
         res.status(401).json({ message: 'You shall not pass!' });
       }
@@ -36,5 +35,12 @@ router.post('/login', (req, res) => {
       res.status(500).json(error);
     });
 });
+
+router.delete('/', (req, res) => {
+  if(req.session) {
+    req.session.destroy();
+  }
+  res.status(200).json({message: 'goodbye!'})
+})
 
 module.exports = router;
